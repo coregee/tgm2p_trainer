@@ -4,7 +4,7 @@ Push-Location (Join-Path $root "app")
 try {
     python -m pip install --disable-pip-version-check -q PySide6 pyinstaller
     python -m PyInstaller --noconfirm --clean --onefile --windowed `
-        --name TGM2Trainer `
+        --name tgm2p-trainer `
         --paths . `
         --collect-submodules tgmtrainer `
         --add-data "$(Join-Path $root 'plugin\addresses.json');." `
