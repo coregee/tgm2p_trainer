@@ -1,0 +1,554 @@
+{
+  "meta": {
+    "rom": "tgm2p",
+    "endian": "big",
+    "ram_base": "0x06000000",
+    "version": 6,
+    "port": 50575,
+    "players": {
+      "count": 2,
+      "structs": [
+        {
+          "base": "0x06064898",
+          "size": "0x3B4",
+          "stride": "0x3B4",
+          "desc": "P2 base = 0x06064C4C"
+        },
+        {
+          "base": "0x06079378",
+          "size": "0x4C",
+          "stride": "0x4C",
+          "desc": "P2 base = 0x060793C4"
+        }
+      ]
+    }
+  },
+  "addresses": {
+    "game_mode": {
+      "address": "0x06064BA4",
+      "size": 2,
+      "type": "u",
+      "readonly": true,
+      "desc": "Normal=0x1, Master=0x2, Doubles=0x4, Death=0x1000, TGMPlus=0x80, Versus=0x8, 20G=0x20, BIG=0x40, TLS=0x400, Item=0x200, Killscreen=0x2000"
+    },
+    "level": {
+      "address": "0x06064BBA",
+      "size": 2,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 999
+    },
+    "section": {
+      "address": "0x06064C24",
+      "size": 2,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 9
+    },
+    "section_count": {
+      "address": "0x06064BDE",
+      "size": 1,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 9
+    },
+    "timer": {
+      "address": "0x06064BEA",
+      "size": 2,
+      "type": "u",
+      "readonly": true,
+      "desc": "Frame-counter"
+    },
+    "play_state": {
+      "address": "0x06064BF5",
+      "size": 1,
+      "type": "u",
+      "readonly": true,
+      "desc": "0=NONE, 1=START, 2=ACTIVE, 3=LOCKING, 4=LINECLEAR, 5=ENTRY, 7=GAMEOVER, 10=IDLE, 11=FADING, 13=COMPLETION"
+    },
+    "internal_grade": {
+      "address": "0x06079378",
+      "size": 1,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 31
+    },
+    "grade_points": {
+      "address": "0x06079379",
+      "size": 1,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 99
+    },
+    "mroll_flag": {
+      "address": "0x06064BD0",
+      "size": 1,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 127
+    },
+    "death_torikan": {
+      "address": "0x06064C39",
+      "size": 1,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 1,
+      "desc": "0=fail, 1=pass"
+    },
+
+    "active_piece": {
+      "address": "0x06064BF6",
+      "size": 2,
+      "type": "u",
+      "readonly": true,
+      "desc": "Active piece word (player+0x35E): high byte = state flags (0x02 BIG, 0x01 rainbow, 0x04 hard-block, 0x08 grey-lock), low byte = piece type (2=I 3=Z 4=S 5=J 6=L 7=O 8=T)"
+    },
+    "next_piece": {
+      "address": "0x06064BF8",
+      "size": 2,
+      "type": "u",
+      "readonly": true,
+      "desc": "Queued (next) piece word (player+0x360); same encoding as active_piece"
+    },
+    "active_rotation": {
+      "address": "0x06064BFA",
+      "size": 2,
+      "type": "u",
+      "readonly": true,
+      "desc": "Active piece orientation/rotation state (player+0x362), 0-3. Confirmed via get_active_piece_aim_column."
+    },
+    "active_x": {
+      "address": "0x06064BFC",
+      "size": 2,
+      "type": "s",
+      "readonly": true,
+      "desc": "Active piece column (player+0x364); 1-10 (0-11 incl. frame)"
+    },
+    "active_y": {
+      "address": "0x06064C00",
+      "size": 2,
+      "type": "s",
+      "readonly": true,
+      "desc": "Active piece row (player+0x368); 0-21, higher = lower on screen"
+    },
+    "das_counter": {
+      "address": "0x06064BE1",
+      "size": 1,
+      "type": "u",
+      "readonly": true,
+      "desc": "DAS charge value (player+0x349)"
+    },
+
+    "gravity": {
+      "address": "0x06064BF1",
+      "size": 2,
+      "type": "u",
+      "readonly": true,
+      "desc": "Display only"
+    },
+
+    "lock_delay": {
+      "address": "0x06064BE0",
+      "size": 1,
+      "type": "u",
+      "volatile": true,
+      "min": 1,
+      "max": 127,
+      "desc": "Active piece's remaining lock frames"
+    },
+
+    "big_mode": {
+      "address": "0x06064BA4",
+      "size": 2,
+      "type": "u",
+      "mask": "0x40",
+      "min": 0,
+      "max": 1,
+      "also_or": [
+        {
+          "address": "0x06064BF8",
+          "size": 2,
+          "mask": "0x200",
+          "desc": "queued piece BIG flag"
+        }
+      ]
+    },
+    "trans_form": {
+      "address": "0x06064BF6",
+      "size": 2,
+      "type": "u",
+      "mask": "0x100",
+      "volatile": true,
+      "min": 0,
+      "max": 1,
+      "desc": "Force the TRANS FORM flag on the current/queued pieces",
+      "also_or": [
+        {
+          "address": "0x06064BF8",
+          "size": 2,
+          "mask": "0x100",
+          "desc": "queued piece rainbow flag"
+        }
+      ]
+    },
+    "ghost": {
+      "address": "0x06064BA4",
+      "size": 2,
+      "type": "u",
+      "mask": "0x400",
+      "min": 0,
+      "max": 1,
+      "desc": "TLS mode = forces the ghost ON at every level; can't turn it off (use ghost_render)."
+    },
+    "ghost_render": {
+      "address": "0x06064BA0",
+      "size": 4,
+      "type": "u",
+      "mask": "0x4000",
+      "volatile": true,
+      "min": 0,
+      "max": 1,
+      "desc": "Ghost-visible render bit."
+    },
+    "item_mode": {
+      "address": "0x06064BA4",
+      "size": 2,
+      "type": "u",
+      "mask": "0x200",
+      "min": 0,
+      "max": 1
+    },
+
+    "music": {
+      "address": "0x06064767",
+      "size": 1,
+      "type": "u",
+      "readonly": true,
+      "desc": "Currently-loaded BGM track id."
+    },
+    "music_scene": {
+      "address": "0x06079299",
+      "size": 1,
+      "type": "u",
+      "volatile": true,
+      "min": 0,
+      "max": 10,
+      "desc": "BGM director incoming music value"
+    },
+
+    "debug_mode": {
+      "address": "0x0607CF0C",
+      "size": 1,
+      "type": "u",
+      "min": 0,
+      "max": 1
+    },
+
+    "reset_game": {
+      "address": "0x06064BA0",
+      "size": 4,
+      "type": "u",
+      "mask": "0x3000",
+      "min": 0,
+      "max": 1,
+      "volatile": true,
+      "desc": "Hacky write to reset/reroll game state"
+    }
+  },
+
+  "recipes": {
+    "grade_mroll": {
+      "writes": [
+        { "name": "internal_grade", "value": 31 },
+        { "name": "grade_points", "value": 99 },
+        { "name": "mroll_flag", "value": 127 }
+      ],
+      "volatile": true,
+      "desc": "Force displayed grade to S9 (internal_grade=31) and fulfil the M-roll conditions."
+    }
+  },
+
+  "presets": {
+    "timings": {
+      "_comment": "Displayed frame-time tables; ARE/DAS are +2 here compared to internal game logic",
+      "master_000": {
+        "are": 27,
+        "line_are": 27,
+        "das": 16,
+        "lock_delay": 30,
+        "line_clear": 40
+      },
+      "master_500": {
+        "are": 27,
+        "line_are": 27,
+        "das": 10,
+        "lock_delay": 30,
+        "line_clear": 25
+      },
+      "master_600": {
+        "are": 27,
+        "line_are": 18,
+        "das": 10,
+        "lock_delay": 30,
+        "line_clear": 16
+      },
+      "master_700": {
+        "are": 18,
+        "line_are": 14,
+        "das": 10,
+        "lock_delay": 30,
+        "line_clear": 12
+      },
+      "master_800": {
+        "are": 14,
+        "line_are": 8,
+        "das": 10,
+        "lock_delay": 30,
+        "line_clear": 6
+      },
+      "master_900": {
+        "are": 14,
+        "line_are": 8,
+        "das": 8,
+        "lock_delay": 17,
+        "line_clear": 6
+      },
+      "death_000": {
+        "are": 18,
+        "line_are": 14,
+        "das": 12,
+        "lock_delay": 30,
+        "line_clear": 12
+      },
+      "death_100": {
+        "are": 14,
+        "line_are": 8,
+        "das": 12,
+        "lock_delay": 26,
+        "line_clear": 6
+      },
+      "death_200": {
+        "are": 14,
+        "line_are": 8,
+        "das": 11,
+        "lock_delay": 22,
+        "line_clear": 6
+      },
+      "death_300": {
+        "are": 8,
+        "line_are": 8,
+        "das": 10,
+        "lock_delay": 18,
+        "line_clear": 6
+      },
+      "death_400": {
+        "are": 7,
+        "line_are": 7,
+        "das": 8,
+        "lock_delay": 15,
+        "line_clear": 5
+      },
+      "death_500": {
+        "are": 6,
+        "line_are": 6,
+        "das": 8,
+        "lock_delay": 15,
+        "line_clear": 4
+      }
+    }
+  },
+
+  "celldim": {
+    "invisible": {
+      "base": "0x06064898",
+      "field_ptr_off": 0,
+      "width_off": "0xdf",
+      "height_off": "0xde",
+      "stride": 6,
+      "cell_off": 0,
+      "or16": "0x4000",
+      "type_off": 0,
+      "type_mask": "0xf",
+      "type_min": 2,
+      "doubles_mode_addr": "0x06064880",
+      "doubles_mask": "0x4",
+      "doubles_player": 1,
+      "doubles_live_byte": "0x060EC010",
+      "play_state_off": "0x35d",
+      "reveal_states": [7, 9, 10, 11, 13],
+      "native_flag_addr": "0x06064BA0",
+      "native_flag_bit": "0x200000",
+      "desc": "Field-wide invis code; masks each cell unless game state in reveal_states"
+    }
+  },
+
+  "tables": {
+    "gravity_force": {
+      "pointers": ["0x06007c5c", "0x06007c60", "0x06007c64", "0x06007c68"],
+      "originals": ["0x0003660c", "0x00037a68", "0x000375b0", "0x00037f1c"],
+      "scratch": "0x060E0000",
+      "entries": 1000,
+      "entry_size": 4,
+      "scale": 256,
+      "min": 0,
+      "max": 5120,
+      "always": true,
+      "passthrough": -1,
+      "desc": "Repointed gravity constant."
+    },
+
+    "are_force": {
+      "pointers": ["0x06002c30", "0x06002b30"],
+      "originals": ["0x00039428", "0x00039fe6"],
+      "scratch": "0x060E8000",
+      "entries": 1000,
+      "entry_size": 2,
+      "min": 1,
+      "max": 127,
+      "always": true,
+      "passthrough": -1,
+      "index_offsets": [-500, 0],
+      "below_default": 25,
+      "patches": [
+        { "addr": "0x06002b4a", "bytes": "0009" },
+        { "addr": "0x06002b3a", "bytes": "a002" }
+      ],
+      "flat_when": { "addr": "0x06064BA4", "mask": "0x80" },
+      "desc": "Repointed ARE constant(s)"
+    },
+    "line_are_force": {
+      "pointers": ["0x06002b2c", "0x06002b28"],
+      "originals": ["0x0003903e", "0x0003a3d0"],
+      "scratch": "0x060E9000",
+      "entries": 1000,
+      "entry_size": 2,
+      "min": 1,
+      "max": 127,
+      "always": true,
+      "passthrough": -1,
+      "index_offsets": [-500, 0],
+      "below_default": 25,
+      "patches": [
+        { "addr": "0x06002ac4", "bytes": "0009" },
+        { "addr": "0x06002aae", "bytes": "0009" }
+      ],
+      "flat_when": { "addr": "0x06064BA4", "mask": "0x80" },
+      "desc": "Repointed line-ARE constant(s)"
+    },
+    "line_clear_force": {
+      "pointers": ["0x06002a28", "0x06002a2c"],
+      "originals": ["0x0003903e", "0x0003a3d0"],
+      "scratch": "0x060EA000",
+      "entries": 1000,
+      "entry_size": 2,
+      "min": 1,
+      "max": 127,
+      "always": true,
+      "passthrough": -1,
+      "index_offsets": [-500, 0],
+      "below_default": 40,
+      "patches": [
+        { "addr": "0x060029f0", "bytes": "0009" },
+        { "addr": "0x060029d2", "bytes": "a003" }
+      ],
+      "flat_when": { "addr": "0x06064BA4", "mask": "0x80" },
+      "desc": "Repointed line-clear animation length constant(s)"
+    },
+    "lock_force": {
+      "pointers": ["0x06002904", "0x06002908"],
+      "originals": ["0x00039812", "0x00039bfc"],
+      "scratch": "0x060EB000",
+      "entries": 1000,
+      "entry_size": 2,
+      "min": 1,
+      "max": 127,
+      "always": true,
+      "passthrough": -1,
+      "index_offsets": [-500, 0],
+      "below_default": 30,
+      "patches": [
+        { "addr": "0x06002920", "bytes": "0009" },
+        { "addr": "0x060028a2", "bytes": "0009" }
+      ],
+      "flat_when": { "addr": "0x06064BA4", "mask": "0x80" },
+      "desc": "Repointed lock-delay constant(s)."
+    }
+  },
+
+  "dasfx": {
+    "das_force": {
+      "scratch": "0x060EC000",
+      "game_mode": "0x06064BA4",
+      "level": "0x06064BBA",
+      "tgmplus_mask": "0x80",
+      "death_mask": "0x1000",
+      "min": 1,
+      "max": 127,
+      "always": true,
+      "passthrough": -1,
+      "patches": [
+        { "addr": "0x0600352e", "bytes": "d4046440644ca03a0009" },
+        { "addr": "0x06003540", "bytes": "060ec000" }
+      ],
+      "stock": {
+        "tgmplus": 14,
+        "master": [
+          [900, 6],
+          [500, 8],
+          [0, 14]
+        ],
+        "death": [
+          [400, 6],
+          [300, 8],
+          [200, 9],
+          [0, 10]
+        ]
+      },
+      "desc": "Repointed DAS charge length patches."
+    }
+  },
+
+  "codepatches": {
+    "doubles_invisible": {
+      "always": true,
+      "live_byte": "0x060EC010",
+      "patches": [
+        {
+          "addr": "0x06002558",
+          "bytes": "06015c7c",
+          "desc": "Repoints the doubles stack draw call to our trampoline"
+        },
+        {
+          "addr": "0x06015C7C",
+          "bytes": "d01560002008892461426543757e7560625463506733373c373c377c0009000965130009000942158b136653613341158b0b8461c80e8904c8808b026060cb402600760671ffaff20009357c72ffafea0009d002402b0009060ec010060161b8",
+          "desc": "Our doubles invisible trampoline. Checks flag each frame, and if active, ORs 0x4000 into the attr of every type>=2 cell block, except 0x0080 cells (locking animation); jmps the renderer to draw remainder."
+        }
+      ]
+    }
+  },
+
+  "state_fields": [
+    "level",
+    "timer",
+    "play_state",
+    "active_piece",
+    "next_piece",
+    "active_rotation",
+    "active_x",
+    "active_y",
+    "das_counter",
+    "game_mode",
+    "internal_grade",
+    "grade_points",
+    "mroll_flag",
+    "gravity",
+    "music"
+  ]
+}

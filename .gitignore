@@ -1,0 +1,12 @@
+/mame
+/tgm2p
+/ghidra-project
+__pycache__/
+*.pyc
+.venv/
+venv/
+app/build/
+app/dist/
+*.spec
+tools/_snaps/
+.vscode/
