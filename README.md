@@ -8,7 +8,7 @@ Bridge plugin + companion app for MAME to enable various modifiers for playing T
    - `tgm2p-trainer-windows-x64.zip`
    - `tgm2p-trainer-linux-x64.tar.gz`
    - `tgm2p-trainer-macos-arm64.zip` (Apple Silicon; Intel Macs: [build from source](#building-from-source))
-2. Move the `tgm2p-trainer` folder from the archive into your MAME plugins directory:
+2. Move the `plugins/tgm2p-trainer` folder from the archive into your MAME plugins directory:
    - **Windows:** `<your MAME folder>\plugins\`
    - **Linux / macOS:** `~/.mame/plugins/` (create it if needed), or the `plugins` folder next to your MAME binary
 3. Run the trainer app (`tgm2p-trainer.exe` / `tgm2p-trainer` / `tgm2p-trainer.app`), click the 'Config' button, and select your MAME executable in the file browser.

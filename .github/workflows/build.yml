@@ -43,24 +43,24 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force package | Out-Null
-          Copy-Item -Recurse plugin package/tgm2p-trainer
+          New-Item -ItemType Directory -Force package/plugins | Out-Null
+          Copy-Item -Recurse plugin package/plugins/tgm2p-trainer
           Copy-Item app/dist/tgm2p-trainer.exe package/
           Compress-Archive -Path package/* -DestinationPath ${{ matrix.archive }}
 
       - name: Package (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkdir -p package
-          cp -r plugin package/tgm2p-trainer
+          mkdir -p package/plugins
+          cp -r plugin package/plugins/tgm2p-trainer
           cp app/dist/tgm2p-trainer package/
           tar -czf ${{ matrix.archive }} -C package .
 
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
-          mkdir -p package
-          cp -r plugin package/tgm2p-trainer
+          mkdir -p package/plugins
+          cp -r plugin package/plugins/tgm2p-trainer
           cp -R app/dist/tgm2p-trainer.app package/
           cd package && zip -ry ../${{ matrix.archive }} .
 
