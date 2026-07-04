@@ -1,0 +1,76 @@
+name: build
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: windows-x64
+            archive: tgm2p-trainer-windows-x64.zip
+          - os: ubuntu-22.04
+            label: linux-x64
+            archive: tgm2p-trainer-linux-x64.tar.gz
+          - os: macos-latest
+            label: macos-arm64
+            archive: tgm2p-trainer-macos-arm64.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: pwsh -File build.ps1
+
+      - name: Build (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: bash build.sh
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force package | Out-Null
+          Copy-Item -Recurse plugin package/tgm2p-trainer
+          Copy-Item app/dist/tgm2p-trainer.exe package/
+          Compress-Archive -Path package/* -DestinationPath ${{ matrix.archive }}
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p package
+          cp -r plugin package/tgm2p-trainer
+          cp app/dist/tgm2p-trainer package/
+          tar -czf ${{ matrix.archive }} -C package .
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p package
+          cp -r plugin package/tgm2p-trainer
+          cp -R app/dist/tgm2p-trainer.app package/
+          cd package && zip -ry ../${{ matrix.archive }} .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tgm2p-trainer-${{ matrix.label }}
+          path: ${{ matrix.archive }}
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.archive }}

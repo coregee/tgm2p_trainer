@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 import subprocess
+import sys
 import time
 from collections import namedtuple
 from pathlib import Path
@@ -17,7 +18,7 @@ from PySide6.QtWidgets import (
 )
 
 from .bridge import Bridge
-from .config import Config, find_mame_dir, save_mame_dir
+from .config import Config, find_mame_exe, save_mame_exe
 from .hotkeys import load_bindings, save_bindings
 from .keymap import mame_token, mod_names
 from .launcher import Launcher
@@ -206,21 +207,21 @@ class ConfigDialog(QDialog):
         Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt, Qt.Key_Meta, Qt.Key_AltGr,
     }
 
-    def __init__(self, actions, bindings, probe, mame_dir, parent=None):
+    def __init__(self, actions, bindings, probe, mame_exe, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Config")
         self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
-        self.bindings = bindings 
+        self.bindings = bindings
         self._probe = probe
-        self.mame_dir = Path(mame_dir) if mame_dir else None
+        self.mame_exe = Path(mame_exe) if mame_exe else None
         self._capturing: str | None = None
-        self._rows = {} 
+        self._rows = {}
 
         outer = QVBoxLayout(self)
 
         path_box = QGroupBox("MAME")
         path_row = QHBoxLayout(path_box)
-        path_row.addWidget(QLabel("mame.exe:"))
+        path_row.addWidget(QLabel("Executable:"))
         self.path_edit = QLineEdit()
         self.path_edit.setReadOnly(True)
         self.path_edit.setPlaceholderText("(Unset)")
@@ -268,16 +269,19 @@ class ConfigDialog(QDialog):
         outer.addWidget(buttons)
 
     def _refresh_path(self):
-        self.path_edit.setText(str(self.mame_dir / "mame.exe") if self.mame_dir else "")
+        self.path_edit.setText(str(self.mame_exe) if self.mame_exe else "")
 
     def _browse_mame(self):
-        start = str(self.mame_dir) if self.mame_dir else ""
+        start = str(self.mame_exe.parent) if self.mame_exe else ""
+        if sys.platform == "win32":
+            filters = "MAME executable (mame*.exe);;Executables (*.exe);;All files (*)"
+        else:
+            filters = "MAME executable (mame*);;All files (*)"
         fn, _ = QFileDialog.getOpenFileName(
-            self, "Locate mame.exe", start,
-            "MAME executable (mame*.exe);;Executables (*.exe);;All files (*)",
+            self, "Locate MAME executable", start, filters,
         )
         if fn:
-            self.mame_dir = Path(fn).resolve().parent
+            self.mame_exe = Path(fn).resolve()
             self._refresh_path()
 
     def _refresh_row(self, aid: str):
@@ -351,8 +355,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("TGM2 Trainer")
         self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
 
-        self.mame_dir = find_mame_dir()
-        self.launcher: Launcher | None = Launcher(self.mame_dir) if self.mame_dir else None
+        self.mame_exe = find_mame_exe()
+        self.launcher: Launcher | None = Launcher(self.mame_exe) if self.mame_exe else None
         self.mame_proc: subprocess.Popen | None = None
         self._gravity_active = False
         self._timings_active = False
@@ -366,7 +370,7 @@ class MainWindow(QMainWindow):
         self.tri_toggles: dict[str, TriToggle] = {}
 
         try:
-            self.config = Config.load(self.mame_dir)
+            self.config = Config.load(self.mame_exe.parent if self.mame_exe else None)
             self._config_error = None
         except FileNotFoundError as exc:
             self.config = Config({})
@@ -391,14 +395,14 @@ class MainWindow(QMainWindow):
         header.addWidget(self.status_dot)
         header.addWidget(self.status_text, 1)
         self.config_btn = QPushButton("Config")
-        self.config_btn.setToolTip("Set your MAME .exe path and shortcut hotkeys.")
+        self.config_btn.setToolTip("Set your MAME executable path and shortcut hotkeys.")
         self.config_btn.clicked.connect(self._open_config)
         header.addWidget(self.config_btn)
         self.launch_btn = QPushButton("Launch MAME")
         self.launch_btn.clicked.connect(self._launch)
         if not self.launcher or not self.launcher.available():
             self.launch_btn.setEnabled(False)
-            self.launch_btn.setToolTip(self._config_error or "mame.exe not found")
+            self.launch_btn.setToolTip(self._config_error or "MAME executable not found")
         header.addWidget(self.launch_btn)
         root.addLayout(header)
 
@@ -548,9 +552,6 @@ class MainWindow(QMainWindow):
         root.addStretch(1)
 
         footer = QHBoxLayout()
-        reload_btn = QPushButton("Reload config")
-        reload_btn.clicked.connect(self.bridge.reload_config)
-        footer.addWidget(reload_btn)
         self.notice = QLabel("")
         self.notice.setStyleSheet("color: #888;")
         footer.addWidget(self.notice, 1)
@@ -1071,31 +1072,31 @@ class MainWindow(QMainWindow):
             [(a.id, a.label) for a in self._hotkey_actions],
             dict(self.hotkey_bindings),
             probe=lambda token: bool(token),
-            mame_dir=self.mame_dir,
+            mame_exe=self.mame_exe,
             parent=self,
         )
         dlg.exec()
         self.hotkey_bindings = dlg.bindings
         save_bindings(self.hotkey_bindings)
         self._apply_hotkeys()
-        if dlg.mame_dir != self.mame_dir:
-            self._set_mame_dir(dlg.mame_dir)
+        if dlg.mame_exe != self.mame_exe:
+            self._set_mame_exe(dlg.mame_exe)
 
-    def _set_mame_dir(self, mame_dir: Path | None):
-        save_mame_dir(mame_dir)
-        self.mame_dir = mame_dir
-        self.launcher = Launcher(mame_dir) if mame_dir else None
+    def _set_mame_exe(self, mame_exe: Path | None):
+        save_mame_exe(mame_exe)
+        self.mame_exe = mame_exe
+        self.launcher = Launcher(mame_exe) if mame_exe else None
         ready = bool(self.launcher and self.launcher.available())
         self.launch_btn.setEnabled(ready)
-        self.launch_btn.setToolTip("" if ready else "mame.exe not found")
+        self.launch_btn.setToolTip("" if ready else "MAME executable not found")
         if not self.config.data:
             try:
-                self.config = Config.load(mame_dir)
+                self.config = Config.load(mame_exe.parent if mame_exe else None)
                 self._config_error = None
             except FileNotFoundError as exc:
                 self._config_error = str(exc)
         self._on_notice(
-            f"MAME path set to {mame_dir}" if mame_dir else "MAME path cleared"
+            f"MAME path set to {mame_exe}" if mame_exe else "MAME path cleared"
         )
 
     def closeEvent(self, event):

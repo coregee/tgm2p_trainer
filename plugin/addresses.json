@@ -523,12 +523,12 @@
         {
           "addr": "0x06002558",
           "bytes": "06015c7c",
-          "desc": "Repoints the doubles stack draw call to our trampoline"
+          "desc": "Repoints the doubles stack draw call to the trampoline below:"
         },
         {
           "addr": "0x06015C7C",
           "bytes": "d01560002008892461426543757e7560625463506733373c373c377c0009000965130009000942158b136653613341158b0b8461c80e8904c8808b026060cb402600760671ffaff20009357c72ffafea0009d002402b0009060ec010060161b8",
-          "desc": "Our doubles invisible trampoline. Checks flag each frame, and if active, ORs 0x4000 into the attr of every type>=2 cell block, except 0x0080 cells (locking animation); jmps the renderer to draw remainder."
+          "desc": "Checks flag each frame, and if active, ORs 0x4000 into the attr of every type>=2 cell block, except 0x0080 cells (locking animation); jmps the renderer to draw remainder."
         }
       ]
     }

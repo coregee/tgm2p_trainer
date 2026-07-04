@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
+
+if sys.platform == "win32":
+    MAME_EXE_NAMES = ("mame.exe", "mame64.exe")
+else:
+    MAME_EXE_NAMES = ("mame", "mame64")
 
 GRADE_NAMES = [
     "9", "8", "7", "6", "5",
@@ -86,17 +92,32 @@ def _settings_path() -> Path:
     return folder / "settings.json"
 
 
-def load_mame_dir() -> Path | None:
+def mame_exe_in(directory: Path) -> Path | None:
+    for name in MAME_EXE_NAMES:
+        p = directory / name
+        if p.is_file():
+            return p
+    return None
+
+
+def load_mame_exe() -> Path | None:
     try:
         with open(_settings_path(), encoding="utf-8") as fh:
             data = json.load(fh)
     except (OSError, ValueError):
         return None
-    p = data.get("mame_dir") if isinstance(data, dict) else None
-    return Path(p) if isinstance(p, str) and p else None
+    if not isinstance(data, dict):
+        return None
+    p = data.get("mame_exe")
+    if isinstance(p, str) and p:
+        return Path(p)
+    legacy = data.get("mame_dir")  # pre-0.2 settings stored the directory
+    if isinstance(legacy, str) and legacy:
+        return mame_exe_in(Path(legacy))
+    return None
 
 
-def save_mame_dir(mame_dir: Path | str | None):
+def save_mame_exe(mame_exe: Path | str | None):
     path = _settings_path()
     try:
         data = {}
@@ -104,10 +125,11 @@ def save_mame_dir(mame_dir: Path | str | None):
             with open(path, encoding="utf-8") as fh:
                 loaded = json.load(fh)
                 data = loaded if isinstance(loaded, dict) else {}
-        if mame_dir:
-            data["mame_dir"] = str(mame_dir)
+        if mame_exe:
+            data["mame_exe"] = str(mame_exe)
         else:
-            data.pop("mame_dir", None)
+            data.pop("mame_exe", None)
+        data.pop("mame_dir", None)
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(data, fh, indent=2)
@@ -115,36 +137,48 @@ def save_mame_dir(mame_dir: Path | str | None):
         pass
 
 
-def find_mame_dir() -> Path | None:
-    candidates: list[Path] = []
-    saved = load_mame_dir()
-    if saved:
-        candidates.append(saved)
+def find_mame_exe() -> Path | None:
+    saved = load_mame_exe()
+    try:
+        if saved and saved.is_file():
+            return saved.resolve()
+    except OSError:
+        pass
+    env_exe = os.environ.get("TGM2_MAME_EXE")
+    if env_exe and Path(env_exe).is_file():
+        return Path(env_exe).resolve()
+    dir_candidates: list[Path] = []
     env = os.environ.get("TGM2_MAME_DIR")
     if env:
-        candidates.append(Path(env))
+        dir_candidates.append(Path(env))
     base = _base_dir()
-    candidates += [
+    dir_candidates += [
         base.parents[1] / "mame" if len(base.parents) >= 2 else base / "mame",
         base / "mame",
         base.parent / "mame",
         Path.cwd() / "mame",
         Path.cwd(),
     ]
-    for c in candidates:
+    for c in dir_candidates:
         try:
-            if (c / "mame.exe").is_file():
-                return c.resolve()
+            exe = mame_exe_in(c)
         except (OSError, IndexError):
             continue
-    return None
+        if exe:
+            return exe.resolve()
+    which = shutil.which("mame")  # system installs (apt, pacman, Homebrew)
+    return Path(which).resolve() if which else None
 
 
 def addresses_path(mame_dir: Path | None = None) -> Path | None:
     candidates: list[Path] = []
-    mame_dir = mame_dir or find_mame_dir()
+    if mame_dir is None:
+        exe = find_mame_exe()
+        mame_dir = exe.parent if exe else None
     if mame_dir:
         candidates.append(mame_dir / "plugins" / "tgm2p-trainer" / "addresses.json")
+    # MAME's per-user plugin folder on Linux/macOS (and some Windows setups)
+    candidates.append(Path.home() / ".mame" / "plugins" / "tgm2p-trainer" / "addresses.json")
     base = _base_dir()
     for up in (base.parents[1] if len(base.parents) >= 2 else base,
                base.parent, Path.cwd()):
@@ -171,8 +205,9 @@ class Config:
         path = addresses_path(mame_dir)
         if not path:
             raise FileNotFoundError(
-                "addresses.json not found. Set the TGM2_MAME_DIR environment "
-                "variable or place this app next to the 'mame' folder."
+                "addresses.json not found. Install the plugin in MAME's "
+                "plugins folder, or set the TGM2_MAME_DIR / TGM2_MAME_EXE "
+                "environment variable."
             )
         with open(path, "r", encoding="utf-8") as fh:
             return cls(json.load(fh), path)

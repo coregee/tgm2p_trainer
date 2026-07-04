@@ -12,12 +12,12 @@ LAUNCH_ARGS = [
 ]
 
 class Launcher:
-    def __init__(self, mame_dir: Path):
-        self.mame_dir = Path(mame_dir)
+    def __init__(self, mame_exe: Path):
+        self.mame_exe = Path(mame_exe)
 
     @property
-    def mame_exe(self) -> Path:
-        return self.mame_dir / "mame.exe"
+    def mame_dir(self) -> Path:
+        return self.mame_exe.parent
 
     def available(self) -> bool:
         return self.mame_exe.is_file()
@@ -27,7 +27,7 @@ class Launcher:
 
     def launch(self) -> subprocess.Popen:
         if not self.available():
-            raise FileNotFoundError(f"mame.exe not found in {self.mame_dir}")
+            raise FileNotFoundError(f"MAME executable not found: {self.mame_exe}")
         return subprocess.Popen(
             [str(self.mame_exe), *LAUNCH_ARGS],
             cwd=str(self.mame_dir),
