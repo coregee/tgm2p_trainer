@@ -1,0 +1,106 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MAME: workspace bridge (native)",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "${workspaceFolder}/tools/run_mame.py",
+        "--mame",
+        "${input:mameExecutable}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "mame",
+        "pattern": {
+          "regexp": "^(.*):(\\d+): (error|warning): (.*)$",
+          "file": 1,
+          "line": 2,
+          "severity": 3,
+          "message": 4
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Starting MAME",
+          "endsPattern": "MAME started"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "windows": {
+        "command": "${workspaceFolder}/.venv/Scripts/python.exe"
+      }
+    },
+    {
+      "label": "Test: live MAME modifiers",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "${workspaceFolder}/tools/verify_mame.py",
+        "${input:mameExecutable}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": "test",
+      "windows": {
+        "command": "${workspaceFolder}/.venv/Scripts/python.exe"
+      }
+    },
+    {
+      "label": "Test: bridge protocol",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": "test",
+      "windows": {
+        "command": "${workspaceFolder}/.venv/Scripts/python.exe"
+      }
+    },
+    {
+      "label": "ASM: verify generated patches (WSL Ubuntu)",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": [
+        "${workspaceFolder}/tools/build_patches.py",
+        "--wsl",
+        "Ubuntu",
+        "--check"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": "build",
+      "windows": {
+        "command": "${workspaceFolder}/.venv/Scripts/python.exe"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mameExecutable",
+      "type": "promptString",
+      "description": "MAME executable",
+      "default": "C:\\Games\\Emulators\\MAME\\mame.exe"
+    }
+  ]
+}

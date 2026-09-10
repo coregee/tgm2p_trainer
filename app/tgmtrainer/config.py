@@ -12,19 +12,37 @@ else:
     MAME_EXE_NAMES = ("mame", "mame64")
 
 GRADE_NAMES = [
-    "9", "8", "7", "6", "5",
-    "4", "4",
-    "3", "3",
-    "2", "2", "2",
-    "1", "1", "1",
-    "S1", "S1", "S1",
+    "9",
+    "8",
+    "7",
+    "6",
+    "5",
+    "4",
+    "4",
+    "3",
+    "3",
+    "2",
+    "2",
+    "2",
+    "1",
+    "1",
+    "1",
+    "S1",
+    "S1",
+    "S1",
     "S2",
     "S3",
-    "S4", "S4", "S4",
-    "S5", "S5",
-    "S6", "S6",
-    "S7", "S7",
-    "S8", "S8",
+    "S4",
+    "S4",
+    "S4",
+    "S5",
+    "S5",
+    "S6",
+    "S6",
+    "S7",
+    "S7",
+    "S8",
+    "S8",
     "S9",
 ]
 
@@ -33,20 +51,21 @@ def _relative_grade_names(names: list[str]) -> list[str]:
     """Grade to sub-grade name."""
     out: list[str] = []
     i = 0
-    letters = ['a', 'b', 'c']
+    letters = ["a", "b", "c"]
     while i < len(names):
         j = i
         while j < len(names) and names[j] == names[i]:
             j += 1
         run = j - i
-        if run == 1: # simple grade
+        if run == 1:  # simple grade
             out.append(names[i])
         else:
             for k in range(run):
-                suffix = (run - k - 1)
+                suffix = run - k - 1
                 out.append(f"{names[i]} {letters[suffix]}")
         i = j
     return out
+
 
 GRADE_NAMES_RELATIVE = _relative_grade_names(GRADE_NAMES)
 
@@ -65,14 +84,14 @@ PLAY_STATES = {
 }
 
 MUSIC_TRACKS = [
-    "Level 1",   # 0
-    "Level 2",   # 1
-    "Level 3",   # 2
-    "Level 4",   # 3
-    "Versus",    # 4
-    "Credits",   # 5
-    "Result",    # 6
-    "Select",    # 7
+    "Level 1",  # 0
+    "Level 2",  # 1
+    "Level 3",  # 2
+    "Level 4",  # 3
+    "Versus",  # 4
+    "Credits",  # 5
+    "Result",  # 6
+    "Select",  # 7
 ]
 MUSIC_NONE = -1
 MUSIC_STOP_SCENE = 2
@@ -87,6 +106,7 @@ def _base_dir() -> Path:
 
 def _settings_path() -> Path:
     from PySide6.QtCore import QStandardPaths
+
     base = QStandardPaths.writableLocation(QStandardPaths.AppConfigLocation)
     folder = Path(base) if base else Path.home() / ".tgm2trainer"
     return folder / "settings.json"
@@ -170,117 +190,12 @@ def find_mame_exe() -> Path | None:
     return Path(which).resolve() if which else None
 
 
-def addresses_path(mame_dir: Path | None = None) -> Path | None:
-    candidates: list[Path] = []
-    if mame_dir is None:
-        exe = find_mame_exe()
-        mame_dir = exe.parent if exe else None
-    if mame_dir:
-        candidates.append(mame_dir / "plugins" / "tgm2p-trainer" / "addresses.json")
-    # MAME's per-user plugin folder on Linux/macOS (and some Windows setups)
-    candidates.append(Path.home() / ".mame" / "plugins" / "tgm2p-trainer" / "addresses.json")
-    base = _base_dir()
-    for up in (base.parents[1] if len(base.parents) >= 2 else base,
-               base.parent, Path.cwd()):
-        candidates.append(up / "plugin" / "addresses.json")
-    meipass = getattr(sys, "_MEIPASS", None)
-    if meipass:
-        candidates.append(Path(meipass) / "addresses.json")
-    for c in candidates:
-        try:
-            if c.is_file():
-                return c.resolve()
-        except OSError:
-            continue
+def bundled_plugin_dir() -> Path | None:
+    """Prefer the plugin shipped with this app over an unrelated installed copy."""
+    roots = [Path(__file__).resolve().parents[2] / "plugin"]
+    if getattr(sys, "_MEIPASS", None):
+        roots.insert(0, Path(sys._MEIPASS) / "plugin")
+    for root in roots:
+        if (root / "init.lua").is_file() and (root / "native.json").is_file():
+            return root
     return None
-
-
-class Config:
-    def __init__(self, data: dict, source: Path | None = None):
-        self.data = data
-        self.source = source
-
-    @classmethod
-    def load(cls, mame_dir: Path | None = None) -> "Config":
-        path = addresses_path(mame_dir)
-        if not path:
-            raise FileNotFoundError(
-                "addresses.json not found. Install the plugin in MAME's "
-                "plugins folder, or set the TGM2_MAME_DIR / TGM2_MAME_EXE "
-                "environment variable."
-            )
-        with open(path, "r", encoding="utf-8") as fh:
-            return cls(json.load(fh), path)
-
-    @property
-    def port(self) -> int:
-        return int(self.data.get("meta", {}).get("port", 50575))
-
-    @property
-    def addresses(self) -> dict:
-        return self.data.get("addresses", {})
-
-    @property
-    def timing_presets(self) -> dict:
-        presets = self.data.get("presets", {}).get("timings", {})
-        return {k: v for k, v in presets.items() if not k.startswith("_")}
-
-    @property
-    def timing_members(self) -> list[str]:
-        return self.data.get("composites", {}).get("timings", {}).get(
-            "members", ["are", "line_are", "das", "lock_delay", "line_clear"]
-        )
-
-    @property
-    def grade_max(self) -> int:
-        return len(GRADE_NAMES) - 1
-
-    @property
-    def grade_relative_names(self) -> list[str]:
-        return GRADE_NAMES_RELATIVE
-
-    def grade_relative_name(self, index) -> str:
-        """Internal grade index -> disambiguated label, with the relative suffix
-        when the displayed grade spans multiple internal grades, e.g. internal
-        21 -> 'S4-2'."""
-        try:
-            return GRADE_NAMES_RELATIVE[int(index)]
-        except (ValueError, TypeError, IndexError):
-            return "?"
-
-    def play_state_name(self, value) -> str:
-        try:
-            return PLAY_STATES.get(int(value), str(value))
-        except (ValueError, TypeError):
-            return "?"
-
-    @property
-    def music_track_names(self) -> list[str]:
-        return MUSIC_TRACKS
-
-    @property
-    def music_none_id(self) -> int:
-        return MUSIC_NONE
-
-    def music_track_name(self, value) -> str:
-        try:
-            i = int(value)
-        except (ValueError, TypeError):
-            return "--"
-        if i == MUSIC_NONE:
-            return "(None)"
-        if 0 <= i < len(MUSIC_TRACKS):
-            return MUSIC_TRACKS[i]
-        return "--"
-
-    def music_track_scene(self, track) -> int:
-        try:
-            t = int(track)
-        except (ValueError, TypeError):
-            return SONG_TO_SCENE[0]
-        if t == MUSIC_NONE:
-            return MUSIC_STOP_SCENE
-        try:
-            return SONG_TO_SCENE[t]
-        except IndexError:
-            return SONG_TO_SCENE[0]

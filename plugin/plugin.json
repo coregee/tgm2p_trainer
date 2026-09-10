@@ -2,7 +2,7 @@
   "plugin": {
     "name": "tgm2p-trainer",
     "description": "TGM2P Trainer bridge",
-    "version": "0.1.0",
+    "version": "0.4.0",
     "author": "coregee",
     "type": "plugin",
     "start": "false"

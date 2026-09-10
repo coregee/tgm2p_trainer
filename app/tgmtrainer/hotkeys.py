@@ -21,7 +21,8 @@ def load_bindings() -> dict:
     if not isinstance(data, dict):
         return {}
     return {
-        k: v for k, v in data.items()
+        k: v
+        for k, v in data.items()
         if isinstance(v, dict) and isinstance(v.get("token"), str)
     }
 

@@ -1,0 +1,62 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Trainer app + MAME bridge",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/app/run_app.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "preLaunchTask": "MAME: workspace bridge (native)",
+      "env": {
+        "TGM2_MAME_EXE": "${input:mameExecutable}"
+      },
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "python": "${workspaceFolder}/.venv/Scripts/python.exe"
+      }
+    },
+    {
+      "name": "MAME bridge: native / recompiler",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools/run_mame.py",
+      "args": [
+        "--mame",
+        "${input:mameExecutable}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "python": "${workspaceFolder}/.venv/Scripts/python.exe"
+      }
+    },
+    {
+      "name": "MAME bridge: interpreter comparison",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools/run_mame.py",
+      "args": [
+        "--mame",
+        "${input:mameExecutable}",
+        "--interpreter"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "python": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "python": "${workspaceFolder}/.venv/Scripts/python.exe"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mameExecutable",
+      "type": "promptString",
+      "description": "MAME executable",
+      "default": "C:\\Games\\Emulators\\MAME\\mame.exe"
+    }
+  ]
+}

@@ -1,0 +1,235 @@
+{
+  "version": 4,
+  "port": 50575,
+  "presets": {
+    "_comment": "Displayed frame-time tables; ARE/DAS are +2 here compared to internal game logic",
+    "master_000": {
+      "are": 27,
+      "line_are": 27,
+      "das": 16,
+      "lock_delay": 30,
+      "line_clear": 40
+    },
+    "master_500": {
+      "are": 27,
+      "line_are": 27,
+      "das": 10,
+      "lock_delay": 30,
+      "line_clear": 25
+    },
+    "master_600": {
+      "are": 27,
+      "line_are": 18,
+      "das": 10,
+      "lock_delay": 30,
+      "line_clear": 16
+    },
+    "master_700": {
+      "are": 18,
+      "line_are": 14,
+      "das": 10,
+      "lock_delay": 30,
+      "line_clear": 12
+    },
+    "master_800": {
+      "are": 14,
+      "line_are": 8,
+      "das": 10,
+      "lock_delay": 30,
+      "line_clear": 6
+    },
+    "master_900": {
+      "are": 14,
+      "line_are": 8,
+      "das": 8,
+      "lock_delay": 17,
+      "line_clear": 6
+    },
+    "death_000": {
+      "are": 18,
+      "line_are": 14,
+      "das": 12,
+      "lock_delay": 30,
+      "line_clear": 12
+    },
+    "death_100": {
+      "are": 14,
+      "line_are": 8,
+      "das": 12,
+      "lock_delay": 26,
+      "line_clear": 6
+    },
+    "death_200": {
+      "are": 14,
+      "line_are": 8,
+      "das": 11,
+      "lock_delay": 22,
+      "line_clear": 6
+    },
+    "death_300": {
+      "are": 8,
+      "line_are": 8,
+      "das": 10,
+      "lock_delay": 18,
+      "line_clear": 6
+    },
+    "death_400": {
+      "are": 7,
+      "line_are": 7,
+      "das": 8,
+      "lock_delay": 15,
+      "line_clear": 5
+    },
+    "death_500": {
+      "are": 6,
+      "line_are": 6,
+      "das": 8,
+      "lock_delay": 15,
+      "line_clear": 4
+    }
+  },
+  "controls": {
+    "gravity": {
+      "label": "Gravity",
+      "bit": 1,
+      "offset": 4,
+      "min": 0,
+      "max": 1310720,
+      "default": 65536,
+      "kind": "gravity",
+      "help": "Override the gravity curve while preserving soft drop, sonic drop and the game's forced-20G rules. The slider midpoint is 1G."
+    },
+    "effective_gravity": {
+      "hidden": true,
+      "label": "Effective gravity",
+      "bit": 2,
+      "offset": 4,
+      "min": 0,
+      "max": 1310720,
+      "default": 65536,
+      "kind": "gravity",
+      "help": "Override the final falling speed, including soft drop, sonic drop and forced 20G. The slider midpoint is 1G."
+    },
+    "are": {
+      "label": "ARE",
+      "bit": 4,
+      "offset": 12,
+      "min": 1,
+      "max": 125,
+      "default": 25,
+      "display_offset": 2,
+      "help": "Entry delay for the next piece. Changes take effect on the next entry transition."
+    },
+    "line_are": {
+      "label": "Line ARE",
+      "bit": 8,
+      "offset": 16,
+      "min": 1,
+      "max": 125,
+      "default": 25,
+      "display_offset": 2,
+      "help": "Entry delay after a line clear."
+    },
+    "line_clear": {
+      "label": "Line clear",
+      "bit": 16,
+      "offset": 20,
+      "min": 1,
+      "max": 127,
+      "default": 40,
+      "help": "Line-clear animation counter loaded at the next clear."
+    },
+    "lock": {
+      "label": "Lock delay",
+      "bit": 32,
+      "offset": 24,
+      "min": 1,
+      "max": 127,
+      "default": 30,
+      "help": "Lock duration loaded for the next piece. The active countdown runs normally."
+    },
+    "das": {
+      "label": "DAS",
+      "bit": 64,
+      "offset": 28,
+      "min": 1,
+      "max": 125,
+      "default": 14,
+      "display_offset": 2,
+      "help": "Threshold for held horizontal input; charge runs normally."
+    },
+    "invisible": {
+      "label": "Stack visibility",
+      "bit": 128,
+      "offset": 32,
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "kind": "visibility",
+      "help": "Visible shows the stack. Invisible preserves M-roll lock flash and brief fade. Fading gives new locks the normal roll's 300-frame countdown (about 5 seconds). End-of-game reveal follows the game. Doubles shares one field; Player 1's setting takes precedence."
+    },
+    "bypass_torikan": {
+      "label": "Bypass Death torikan",
+      "bit": 512,
+      "offset": 40,
+      "min": 1,
+      "max": 1,
+      "default": 1,
+      "kind": "flag",
+      "help": "Skip the Death time-limit decision at its original check."
+    },
+    "ghost": {
+      "label": "Ghost piece",
+      "bit": 1024,
+      "offset": 44,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "kind": "toggle",
+      "help": "Override the ghost visibility argument passed to the piece renderer."
+    },
+    "mroll": {
+      "label": "M-roll qualification",
+      "bit": 2048,
+      "offset": 48,
+      "min": 1,
+      "max": 1,
+      "default": 1,
+      "kind": "flag",
+      "help": "Treat the native M-roll qualification bits as satisfied at their consumers. Does not forge your actual grade or section times."
+    },
+    "freeze_level": {
+      "label": "Freeze level",
+      "bit": 256,
+      "offset": 36,
+      "min": 1,
+      "max": 1,
+      "default": 1,
+      "kind": "flag",
+      "hidden": true,
+      "help": "Freeze the current level. Explicit level and section jumps remain available."
+    },
+    "big": {
+      "label": "BIG pieces",
+      "bit": 4096,
+      "offset": 52,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "kind": "toggle",
+      "hidden": true,
+      "help": "Set or clear BIG for the opening preview and queued pieces in every mode. BIG pieces use the game's two-column movement grid and spawn alignment. The active piece keeps its size and movement grid until the next handoff."
+    },
+    "items": {
+      "label": "ITEM mode",
+      "bit": 8192,
+      "offset": 56,
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "kind": "toggle",
+      "hidden": true,
+      "help": "Keep item mode enabled or disabled at piece-generation events."
+    }
+  }
+}

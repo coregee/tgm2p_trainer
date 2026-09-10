@@ -3,12 +3,9 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location (Join-Path $root "app")
 try {
     python -m pip install --disable-pip-version-check -q PySide6 pyinstaller
-    python -m PyInstaller --noconfirm --clean --onefile --windowed `
-        --name tgm2p-trainer `
-        --paths . `
-        --collect-submodules tgmtrainer `
-        --add-data "$(Join-Path $root 'plugin\addresses.json');." `
-        run_app.py
+    if ($LASTEXITCODE -ne 0) { throw "Dependency installation failed" }
+    python (Join-Path $root 'tools/package_app.py')
+    if ($LASTEXITCODE -ne 0) { throw "PyInstaller build failed" }
     Write-Host "Built: $(Join-Path $root 'app\dist\tgm2p-trainer.exe')"
 }
 finally {

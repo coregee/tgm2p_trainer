@@ -9,4 +9,11 @@ app/build/
 app/dist/
 *.spec
 tools/_snaps/
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Local MAME output
+/cfg/
+/nvram/
+/snap/

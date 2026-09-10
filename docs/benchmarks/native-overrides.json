@@ -1,0 +1,356 @@
+{
+  "mame": "0.289 (mame0289)",
+  "seconds_per_run": 120,
+  "runs": 5,
+  "profiles": {
+    "stock": null,
+    "connected_disabled": {
+      "players": [
+        {},
+        {}
+      ],
+      "global": {}
+    },
+    "base_visible": {
+      "players": [
+        {
+          "gravity": 1024,
+          "are": 25,
+          "line_are": 25,
+          "line_clear": 40,
+          "lock": 30,
+          "das": 14,
+          "invisible": 0,
+          "hold_level": 0,
+          "bypass_torikan": 1,
+          "ghost": 1,
+          "mroll": 1,
+          "transform": 1
+        },
+        {
+          "gravity": 1024,
+          "are": 25,
+          "line_are": 25,
+          "line_clear": 40,
+          "lock": 30,
+          "das": 14,
+          "invisible": 0,
+          "hold_level": 0,
+          "bypass_torikan": 1,
+          "ghost": 1,
+          "mroll": 1,
+          "transform": 1
+        }
+      ],
+      "global": {
+        "music": 1
+      }
+    },
+    "effective_hidden": {
+      "players": [
+        {
+          "are": 25,
+          "line_are": 25,
+          "line_clear": 40,
+          "lock": 30,
+          "das": 14,
+          "invisible": 1,
+          "hold_level": 0,
+          "bypass_torikan": 1,
+          "ghost": 1,
+          "mroll": 1,
+          "transform": 1,
+          "effective_gravity": 1024
+        },
+        {
+          "are": 25,
+          "line_are": 25,
+          "line_clear": 40,
+          "lock": 30,
+          "das": 14,
+          "invisible": 1,
+          "hold_level": 0,
+          "bypass_torikan": 1,
+          "ghost": 1,
+          "mroll": 1,
+          "transform": 1,
+          "effective_gravity": 1024
+        }
+      ],
+      "global": {
+        "music": 1
+      }
+    }
+  },
+  "results": {
+    "stock": [
+      {
+        "speed": 22.79
+      },
+      {
+        "speed": 21.7955
+      },
+      {
+        "speed": 22.598200000000002
+      },
+      {
+        "speed": 22.8061
+      },
+      {
+        "speed": 22.7517
+      }
+    ],
+    "connected_disabled": [
+      {
+        "speed": 21.633499999999998,
+        "steady_write_counts": [
+          3,
+          0
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          0,
+          0
+        ]
+      },
+      {
+        "speed": 21.5775,
+        "steady_write_counts": [
+          3,
+          0
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          0,
+          0
+        ]
+      },
+      {
+        "speed": 21.4102,
+        "steady_write_counts": [
+          3,
+          0
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          0,
+          0
+        ]
+      },
+      {
+        "speed": 21.4276,
+        "steady_write_counts": [
+          3,
+          0
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          0,
+          0
+        ]
+      },
+      {
+        "speed": 21.672399999999996,
+        "steady_write_counts": [
+          3,
+          0
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          0,
+          0
+        ]
+      }
+    ],
+    "base_visible": [
+      {
+        "speed": 21.519499999999997,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          702
+        ],
+        "transformed_active_samples": [
+          864,
+          702
+        ]
+      },
+      {
+        "speed": 21.012800000000002,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          702
+        ],
+        "transformed_active_samples": [
+          864,
+          702
+        ]
+      },
+      {
+        "speed": 20.9364,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          702
+        ],
+        "transformed_active_samples": [
+          864,
+          702
+        ]
+      },
+      {
+        "speed": 21.503899999999998,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          702
+        ],
+        "transformed_active_samples": [
+          864,
+          702
+        ]
+      },
+      {
+        "speed": 21.388,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          702
+        ],
+        "transformed_active_samples": [
+          864,
+          702
+        ]
+      }
+    ],
+    "effective_hidden": [
+      {
+        "speed": 21.503200000000003,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          864,
+          697
+        ]
+      },
+      {
+        "speed": 21.2995,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          864,
+          697
+        ]
+      },
+      {
+        "speed": 21.0671,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          864,
+          697
+        ]
+      },
+      {
+        "speed": 21.541700000000002,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          864,
+          697
+        ]
+      },
+      {
+        "speed": 21.1173,
+        "steady_write_counts": [
+          27,
+          4
+        ],
+        "diagnostic_samples": 16,
+        "active_samples": [
+          864,
+          697
+        ],
+        "transformed_active_samples": [
+          864,
+          697
+        ]
+      }
+    ]
+  },
+  "medians": {
+    "stock": 22.7517,
+    "connected_disabled": 21.5775,
+    "base_visible": 21.388,
+    "effective_hidden": 21.2995
+  }
+}
