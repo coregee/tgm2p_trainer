@@ -594,7 +594,7 @@ class MainWindow(QMainWindow):
         "level_freeze": "Toggle freeze level",
         "grade_up": "Grade +1",
         "reset_game": "Restart player",
-        "invisible": "Toggle invisible",
+        "invisible": "Toggle visibility",
         "big_mode": "Toggle BIG",
         "ghost": "Toggle ghost",
         "item_mode": "Toggle items",
@@ -671,7 +671,12 @@ class MainWindow(QMainWindow):
             self.panels[p].toggles[key].toggle()
         elif key in self.panels[p].rows:
             row = self.panels[p].rows[key]
-            if event == "hold" or row.enabled.isChecked():
+            if event == "hold":
+                row.set_raw(None)
+            elif key == "invisible":
+                # Releasing the override leaves hidden cell flags in place.
+                row.set_raw(0 if row.enabled.isChecked() and row.raw() != 0 else 1)
+            elif row.enabled.isChecked():
                 row.set_raw(None)
             else:
                 row.set_raw(row.spec["default"])

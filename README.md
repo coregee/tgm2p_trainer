@@ -93,8 +93,11 @@ never queued for the next game.
 Built-in debug mode is available from the Game menu.
 
 Hotkeys can be configured from **Game → Hotkeys**. They are polled through MAME's
-host input layer and operate on the player selected in the app. Holding the
-invisible or ghost hotkey releases that override. Existing binding
+host input layer and operate on the player selected in the app. **Toggle visibility**
+switches between forced Invisible and Visible, keeping the override enabled so
+already-hidden cells can be revealed. Fading switches to Visible; with no override,
+the first tap selects Invisible. Holding the visibility or ghost hotkey releases
+that override. Existing binding
 IDs are retained. Closing the app leaves MAME running with its selected settings;
 use **Release all overrides** first if you want normal behavior immediately.
 

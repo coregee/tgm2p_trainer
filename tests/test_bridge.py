@@ -270,6 +270,33 @@ class TrainerTests(unittest.TestCase):
         finally:
             w.close()
 
+    def test_visibility_hotkey_reveals_without_releasing_override(self):
+        w = MainWindow()
+        w.bridge.stop()
+        try:
+            w.bridge.replace_settings = Mock(return_value=1)
+            for player in range(2):
+                w.tabs.setCurrentIndex(player)
+                row = w.panels[player].rows["invisible"]
+                other = copy.deepcopy(w.settings["players"][1 - player])
+                for initial, expected in ((None, 1), (1, 0), (0, 1), (2, 0)):
+                    with self.subTest(player=player, initial=initial):
+                        row.set_raw(initial)
+                        w.bridge.hotkeyEvent.emit("invisible", "tap")
+                        self.assertTrue(row.enabled.isChecked())
+                        self.assertEqual(row.raw(), expected)
+                        self.assertEqual(
+                            w.settings["players"][player]["invisible"], expected
+                        )
+                        self.assertEqual(w.settings["players"][1 - player], other)
+                        w.bridge.replace_settings.assert_called_with(w.settings)
+                w.bridge.hotkeyEvent.emit("invisible", "hold")
+                self.assertFalse(row.enabled.isChecked())
+                self.assertNotIn("invisible", w.settings["players"][player])
+            self.assertEqual(w.HOTKEYS["invisible"], "Toggle visibility")
+        finally:
+            w.close()
+
     def test_gravity_slider_scale_fractional_entry_and_steps(self):
         control = GravityControl()
         slider = control.slider
