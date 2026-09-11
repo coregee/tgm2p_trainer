@@ -70,9 +70,14 @@ minimum of 3 frames. Visibility and other categorical choices retain selectors.
   replacement for the old "forge S9 and qualification RAM" recipe.
 - **BIG / ITEM mode:** persistent practice toggles. BIG controls the queued
   piece's `0x0200` attribute in every mode, including the opening preview, taking
-  effect at the next handoff. BIG pieces use the canonical spawn alignment and
-  two-column tap/DAS movement. A mid-piece toggle changes the next piece; the
-  active piece keeps its size and movement grid.
+  effect at the next handoff. Its dropdown selects **TGM1** (2/4/6/8 levels for
+  single/double/triple/tetris clears, 10-column movement), **TGM2** (2/4/6/8 levels,
+  5-column movement), or **TAP** (1/2/3/4 levels, 5-column movement; the default).
+  Ten-column movement steps one ordinary cell; five-column movement steps two
+  and uses TAP's BIG spawn alignment. A mid-piece toggle or variant change
+  changes the next piece; the active piece keeps its size, grid and clear rule.
+  Older profiles with BIG enabled select TGM2. The BIG hotkey remembers the
+  current dropdown selection when toggled off/on; holding it releases ownership.
   ITEM controls its mode bit at queued-piece events. Unchecking forces off.
 - **Music:** override the shared director's scene choice and retain its transition
   handling. Both players share one soundtrack.

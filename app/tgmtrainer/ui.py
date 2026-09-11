@@ -60,15 +60,19 @@ class ControlRow(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.enabled = QCheckBox(spec["label"])
         self.enabled.setMinimumWidth(170)
-        self.enabled.setToolTip(spec["help"])
+        self.enabled.setToolTip(spec.get("help", ""))
         layout.addWidget(self.enabled)
         kind = spec.get("kind")
-        if kind in ("visibility", "flag", "toggle"):
+        if kind in ("visibility", "flag", "toggle", "big"):
             self.value = QComboBox()
             if kind == "visibility":
                 self.value.addItem("Visible", 0)
                 self.value.addItem("Invisible", 1)
                 self.value.addItem("Fading", 2)
+            elif kind == "big":
+                self.value.addItem("TGM1 (Double clears, full grid)", 2)
+                self.value.addItem("TGM2 (Double clears, half grid)", 1)
+                self.value.addItem("TAP (Single clears, half grid)", 3)
             elif kind == "toggle":
                 self.value.addItem("Off", 0)
                 self.value.addItem("On", 1)
@@ -82,7 +86,7 @@ class ControlRow(QWidget):
         else:
             self.value = NumericControl(spec, " frames")
             self.value.valueChanged.connect(self.edited)
-        self.value.setToolTip(spec["help"])
+        self.value.setToolTip(spec.get("help", ""))
         self.value.setMinimumWidth(160)
         self.value.setEnabled(False)
         layout.addWidget(self.value)
@@ -97,7 +101,7 @@ class ControlRow(QWidget):
         return self.value.value() - self.spec.get("display_offset", 0)
 
     def set_raw(self, value):
-        on = value is not None
+        on = value is not None and (self.key != "big" or value != 0)
         with QSignalBlocker(self.enabled), QSignalBlocker(self.value):
             self.enabled.setChecked(on)
             self.value.setEnabled(on)
@@ -161,11 +165,11 @@ class PlayerPanel(QWidget):
             row = ControlRow(key, catalog["controls"][key])
             self.rows[key] = row
             target.addWidget(row)
-            row.edited.connect(lambda k=key: self.changed.emit(player, k))
+            row.edited.connect(lambda k=key: self.control_edited(k))
 
         def toggle(target, key, label):
             button = QCheckBox(label)
-            button.setToolTip(catalog["controls"][key]["help"])
+            button.setToolTip(catalog["controls"][key].get("help", ""))
             button.toggled.connect(
                 lambda checked, k=key: self.toggle_practice(k, checked)
             )
@@ -191,7 +195,7 @@ class PlayerPanel(QWidget):
 
         _, modifiers = section("Modifiers")
         control(modifiers, "invisible")
-        toggle(modifiers, "big", "BIG mode")
+        control(modifiers, "big")
         toggle(modifiers, "items", "ITEM mode")
         control(modifiers, "ghost")
 
@@ -271,6 +275,12 @@ class PlayerPanel(QWidget):
         if self.level.hasAcceptableInput():
             self.action.emit("level", self.player, int(self.level.text()))
 
+    def control_edited(self, key):
+        if key == "big":
+            row = self.rows[key]
+            self.practice_settings[key] = row.raw() if row.enabled.isChecked() else 0
+        self.changed.emit(self.player, key)
+
     def toggle_practice(self, key, checked):
         if key == "freeze_level" and not checked:
             self.practice_settings.pop(key, None)
@@ -297,7 +307,9 @@ class PlayerPanel(QWidget):
         }
 
     def display(self, settings):
-        self.practice_settings = {k: settings[k] for k in self.toggles if k in settings}
+        self.practice_settings = {
+            k: settings[k] for k in (*self.toggles, "big") if k in settings
+        }
         for key, toggle in self.toggles.items():
             with QSignalBlocker(toggle):
                 toggle.setChecked(bool(settings.get(key, 0)))
@@ -667,7 +679,15 @@ class MainWindow(QMainWindow):
             "big_mode": "big",
             "item_mode": "items",
         }.get(action, action)
-        if key in self.panels[p].toggles:
+        if key == "big":
+            row = self.panels[p].rows[key]
+            if event == "hold":
+                row.set_raw(None)
+                self.panels[p].practice_settings.pop(key, None)
+                self.edited(p, key)
+            else:
+                row.enabled.toggle()
+        elif key in self.panels[p].toggles:
             self.panels[p].toggles[key].toggle()
         elif key in self.panels[p].rows:
             row = self.panels[p].rows[key]

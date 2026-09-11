@@ -32,7 +32,7 @@ load invalidate readiness and republish the app's desired state. An unsupported
 ROM or conflicting patch produces a visible error rather than a misleading
 connected status. MAME runs with the SH-2 dynamic recompiler enabled.
 
-Runtime code occupies `0x060E0000` onward (currently 2,068 bytes); settings start
+Runtime code occupies `0x060E0000` onward (currently 2,656 bytes); settings start
 at `0x060EF000`. These are trainer-reserved locations in work RAM, not ROM edits.
 Other trainers using this area must not be combined with this plugin. Original
 program code is copied from ROM offset `0x780` to `0x06000000` during boot.
@@ -58,12 +58,18 @@ word alone decides whether they are consumed.
 | `0x0200` | `+0x28` | Torikan bypass (flag is sufficient) |
 | `0x0400` | `+0x2C` | Ghost: 0 off, 1 on |
 | `0x0800` | `+0x30` | M-roll qualification override (flag is sufficient) |
-| `0x1000` | `+0x34` | Queued BIG flag: 0 off, 1 on |
+| `0x1000` | `+0x34` | Queued BIG variant: 0 off, 1 TGM2 (legacy on), 2 TGM1, 3 TAP (UI default) |
 | `0x2000` | `+0x38` | ITEM mode flag: 0 off, 1 on |
 
 Offset zero contains the flag word. Global signed scene selection lives at
 `0x060EF200`: -1 follows the game, 0..10 selects a scene. `catalog.json` defines
 public ranges and the two-frame display adjustment for ARE, line ARE and DAS.
+
+Runtime offset `+0x40` latches the active piece's BIG variant at handoff; -1
+means original game logic. Offset `+0x44` is the `BIG5` initialization marker,
+allowing state reloads to retain the active variant. These are guest-owned
+runtime fields, not settings rewritten by the host. Queue edits, disabling and
+releasing BIG leave the current piece's rules intact until handoff.
 
 ## Hook contracts
 
@@ -83,7 +89,8 @@ where the original continuation still needs `r0`.
 | `060035AC` | DAS consumer: player is `r14`, selected threshold is `r4`. Only the threshold changes; input charging and repeats remain original. |
 | `06009254` | Music director consumes/clears its original request, then optionally replaces the pending scene before original transition logic resumes. |
 | `06006B88` | Piece-entry progression: restores the freeze anchor and skips the increment/cap; disabled path replays stock progression. |
-| `06006FE0` | Line progression: supplies the held level before original section/grade calls and boundary checks. |
+| `06006FE0` | Line progression: TGM1/TGM2 add rows beyond the ordinary four-level cap, then freeze overrides the result before original section/grade calls and boundary checks. |
+| `06006EEE`, `06006F14` | BIG count normalization and progression predicates: TAP uses the stock BIG path (two physical rows per big line); TGM1/TGM2 use physical row counts. Unowned and attract paths retain the mode predicate. |
 | `06007016` | Torikan decision: enabled path skips to `06007038`; disabled path replays the time/qualification test. |
 | `06016136`, `060164FA` | Alternate drawing predicate and main gameplay renderer (both single-player and Doubles). Visible clears `0x5000` in the temporary attribute register. Invisible hides ordinary mature cells, preserving `0x80` lock flash and `0x1000` timed fade. Fading follows stored cell timers. States 7, 9, 10, 11 and 13 retain original reveal behavior. |
 | `06003DCA`; eight `tst` sites in `06003F34..06004882` | Lock setup computes the invariant roll-mode predicate in `r9`; the cell writers test that value. Invisible/Fading initialize the original timed-cell mechanism with 3/300 for actual locks only. No extra traversal or mode/qualification mutation. |
@@ -91,7 +98,7 @@ where the original continuation still needs `r0`.
 | `06003DA2`, `0600510C`, `0602219E` | Qualification consumers in lock, clear and roll handling: return satisfied `0x75` bits when enabled. No grade or time forgery. |
 | `06005AB4`, `06005BD4` | Before handoff and after generation: force queued BIG (`0x0200`) and ITEM mode (`0x0200`), preserving unrelated bits. Current geometry changes only at normal handoff. |
 | `06001100` | Apply queued flags at the end of player initialization, after the original opening-preview generator and BIG-mode adjustment. Replay the original epilogue. |
-| `06003620`, `06003658`, `06005C42` | Left/right input and spawn alignment originally test game mode `0x40`. With a trainer BIG setting, test the active piece's `0x200` instead: retain the stock two-column collision/movement branches and one-column spawn adjustment. Unconfigured and attract paths use the original mode predicate. |
+| `06003620`, `06003658`, `06005C42` | Left/right input and spawn alignment: TGM1 uses one-column movement and x=4; TGM2/TAP use the active geometry to select two-column movement and x=5. Unowned and attract paths use the original mode predicate. |
 
 The cached gravity at player `+358` is telemetry, not necessarily the effective
 physics argument. Base gravity still permits downstream soft drop and forced
@@ -173,12 +180,19 @@ Down restores 0G, and sonic drop reaches the floor. P2 stays still and no traine
 parameters are rewritten during these inputs. `verify_app.py` exercises the
 base-gravity control through the actual Qt app and staged bridge.
 
-`tools/verify_big.py` selects BIG independently for P1 and P2 before game start.
-It checks opening-preview and first-piece flags, spawn x=5 versus ordinary x=4,
-and real taps plus held DAS movement in both directions. BIG steps are exactly
-two columns; ordinary pieces step one. Changing the queued toggle during a piece
-retains the current geometry/grid. Opening-preview screenshots are saved alongside the
-test logs under `.venv/big-evidence`. No stock BIG game-mode bit is set.
+`tools/verify_big.py` selects all three BIG variants independently for P1 and P2
+before game start. It checks opening-preview and first-piece flags, spawn x=5
+for TGM2/TAP versus x=4 for TGM1/off, and real taps plus held DAS movement in
+both directions. Changing the queued toggle during a piece retains its grid.
+Opening-preview screenshots and logs are saved under `.venv/big-evidence`.
+No stock BIG game-mode bit is set.
+
+`tools/verify_big_lines.py` seeds full rows then drops and locks real pieces.
+For both players, single through tetris gains are 2/4/6/8 in TGM1/TGM2 and
+1/2/3/4 in TAP/off (off uses ordinary-sized rows). It also checks section
+crossings, level freeze, and variant changes before the active piece locks.
+The fixture checks native clear processing on seeded fields, not a complete
+played game or historical scoring fidelity outside the requested level/grid rules.
 
 Music scene `06064892` is the director's selected scene, not proof of audible
 playback. The loaded-track byte `06064767` stayed `0xFF` in both patched and

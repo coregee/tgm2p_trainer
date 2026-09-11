@@ -262,5 +262,21 @@
     "target": "big_spawn",
     "kind": "jump",
     "expected": "906100ed600dc8408903"
+  },
+  {
+    "name": "big_line_count",
+    "address": 100691694,
+    "size": 14,
+    "target": "big_line_count",
+    "kind": "jump",
+    "expected": "03ed633d2358890a64dcd3366a43"
+  },
+  {
+    "name": "big_line_progress",
+    "address": 100691732,
+    "size": 14,
+    "target": "big_line_progress",
+    "kind": "jump",
+    "expected": "905aec0102ed622d22588d2864dc"
   }
 ]

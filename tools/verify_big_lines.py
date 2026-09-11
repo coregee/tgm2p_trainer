@@ -1,4 +1,4 @@
-"""Check each player's BIG opening preview, spawn grid and tap/DAS movement."""
+"""Verify BIG variant line-level gains with real MAME locks and seeded rows."""
 
 import argparse
 import os
@@ -14,8 +14,8 @@ def main():
     parser.add_argument("mame", type=Path)
     args = parser.parse_args()
     exe = args.mame.resolve()
-    for players in ("10", "01", "20", "02", "30", "03"):
-        output = ROOT / ".venv/big-evidence" / players
+    for players in ("12", "30", "21", "03"):
+        output = ROOT / ".venv/big-evidence" / f"lines-{players}"
         output.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory() as directory:
             result = subprocess.run(
@@ -30,12 +30,12 @@ def main():
                     "-drc",
                     "-noplugins",
                     "-seconds_to_run",
-                    "58",
+                    "75",
                     "-skip_gameinfo",
                     "-autoboot_delay",
                     "0",
                     "-autoboot_script",
-                    str(ROOT / "tools/big_probe.lua"),
+                    str(ROOT / "tools/big_lines_probe.lua"),
                     "-cfg_directory",
                     directory + "/cfg",
                     "-nvram_directory",
@@ -47,7 +47,6 @@ def main():
                     TGM_TEST_PLUGIN=(ROOT / "plugin").as_posix(),
                     TGM_TEST_GAMEPLAY=(ROOT / "tools/gameplay_probe.lua").as_posix(),
                     TGM_TEST_BIG_PLAYERS=players,
-                    TGM_TEST_OUTPUT=output.as_posix(),
                 ),
                 capture_output=True,
                 text=True,
@@ -59,11 +58,13 @@ def main():
         )
         assert (
             result.returncode == 0
-            and result.stdout.count("BIG PASS") == 2
+            and result.stdout.count("LINES PASS") == 12
             and "[LUA ERROR]" not in result.stderr
         ), result.stdout + result.stderr[:3000]
         print(
-            "\n".join(line for line in result.stdout.splitlines() if "BIG PASS" in line)
+            "\n".join(
+                line for line in result.stdout.splitlines() if "LINES PASS" in line
+            )
         )
 
 

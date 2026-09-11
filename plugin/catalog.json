@@ -96,8 +96,7 @@
       "min": 0,
       "max": 1310720,
       "default": 65536,
-      "kind": "gravity",
-      "help": "Override the gravity curve while preserving soft drop, sonic drop and the game's forced-20G rules. The slider midpoint is 1G."
+      "kind": "gravity"
     },
     "effective_gravity": {
       "hidden": true,
@@ -107,8 +106,7 @@
       "min": 0,
       "max": 1310720,
       "default": 65536,
-      "kind": "gravity",
-      "help": "Override the final falling speed, including soft drop, sonic drop and forced 20G. The slider midpoint is 1G."
+      "kind": "gravity"
     },
     "are": {
       "label": "ARE",
@@ -117,8 +115,7 @@
       "min": 1,
       "max": 125,
       "default": 25,
-      "display_offset": 2,
-      "help": "Entry delay for the next piece. Changes take effect on the next entry transition."
+      "display_offset": 2
     },
     "line_are": {
       "label": "Line ARE",
@@ -127,8 +124,7 @@
       "min": 1,
       "max": 125,
       "default": 25,
-      "display_offset": 2,
-      "help": "Entry delay after a line clear."
+      "display_offset": 2
     },
     "line_clear": {
       "label": "Line clear",
@@ -136,8 +132,7 @@
       "offset": 20,
       "min": 1,
       "max": 127,
-      "default": 40,
-      "help": "Line-clear animation counter loaded at the next clear."
+      "default": 40
     },
     "lock": {
       "label": "Lock delay",
@@ -145,8 +140,7 @@
       "offset": 24,
       "min": 1,
       "max": 127,
-      "default": 30,
-      "help": "Lock duration loaded for the next piece. The active countdown runs normally."
+      "default": 30
     },
     "das": {
       "label": "DAS",
@@ -155,8 +149,7 @@
       "min": 1,
       "max": 125,
       "default": 14,
-      "display_offset": 2,
-      "help": "Threshold for held horizontal input; charge runs normally."
+      "display_offset": 2
     },
     "invisible": {
       "label": "Stack visibility",
@@ -165,8 +158,7 @@
       "min": 0,
       "max": 2,
       "default": 1,
-      "kind": "visibility",
-      "help": "Visible shows the stack. Invisible preserves M-roll lock flash and brief fade. Fading gives new locks the normal roll's 300-frame countdown (about 5 seconds). End-of-game reveal follows the game. Doubles shares one field; Player 1's setting takes precedence."
+      "kind": "visibility"
     },
     "bypass_torikan": {
       "label": "Bypass Death torikan",
@@ -175,8 +167,7 @@
       "min": 1,
       "max": 1,
       "default": 1,
-      "kind": "flag",
-      "help": "Skip the Death time-limit decision at its original check."
+      "kind": "flag"
     },
     "ghost": {
       "label": "Ghost piece",
@@ -185,8 +176,7 @@
       "min": 0,
       "max": 1,
       "default": 1,
-      "kind": "toggle",
-      "help": "Override the ghost visibility argument passed to the piece renderer."
+      "kind": "toggle"
     },
     "mroll": {
       "label": "M-roll qualification",
@@ -195,8 +185,7 @@
       "min": 1,
       "max": 1,
       "default": 1,
-      "kind": "flag",
-      "help": "Treat the native M-roll qualification bits as satisfied at their consumers. Does not forge your actual grade or section times."
+      "kind": "flag"
     },
     "freeze_level": {
       "label": "Freeze level",
@@ -206,19 +195,17 @@
       "max": 1,
       "default": 1,
       "kind": "flag",
-      "hidden": true,
-      "help": "Freeze the current level. Explicit level and section jumps remain available."
+      "hidden": true
     },
     "big": {
-      "label": "BIG pieces",
+      "label": "BIG mode",
       "bit": 4096,
       "offset": 52,
       "min": 0,
-      "max": 1,
-      "default": 1,
-      "kind": "toggle",
-      "hidden": true,
-      "help": "Set or clear BIG for the opening preview and queued pieces in every mode. BIG pieces use the game's two-column movement grid and spawn alignment. The active piece keeps its size and movement grid until the next handoff."
+      "max": 3,
+      "default": 3,
+      "kind": "big",
+      "hidden": true
     },
     "items": {
       "label": "ITEM mode",
@@ -228,8 +215,7 @@
       "max": 1,
       "default": 1,
       "kind": "toggle",
-      "hidden": true,
-      "help": "Keep item mode enabled or disabled at piece-generation events."
+      "hidden": true
     }
   }
 }

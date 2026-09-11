@@ -213,9 +213,9 @@ class TrainerTests(unittest.TestCase):
             self.assertNotIn("effective_gravity", p1.rows)
             self.assertNotIn("hold_level", p1.rows)
             self.assertNotIn("transform", w.catalog["controls"])
-            p1.toggles["big"].setChecked(True)
-            self.assertEqual(w.settings["players"][0]["big"], 1)
-            p1.toggles["big"].setChecked(False)
+            p1.rows["big"].enabled.setChecked(True)
+            self.assertEqual(w.settings["players"][0]["big"], 3)
+            p1.rows["big"].enabled.setChecked(False)
             self.assertEqual(w.settings["players"][0]["big"], 0)
             p1.toggles["items"].setChecked(True)
             p1.toggles["freeze_level"].setChecked(True)
@@ -267,6 +267,41 @@ class TrainerTests(unittest.TestCase):
                     for row in p.rows.values()
                 )
             )
+        finally:
+            w.close()
+
+    def test_big_variants_toggle_hotkey_and_profile(self):
+        w = MainWindow()
+        w.bridge.stop()
+        try:
+            row = w.panels[0].rows["big"]
+            self.assertEqual(row.raw(), 3)
+            self.assertEqual(
+                [row.value.itemData(i) for i in range(row.value.count())], [2, 1, 3]
+            )
+            row.enabled.setChecked(True)
+            for variant in (2, 1, 3):
+                row.value.setCurrentIndex(row.value.findData(variant))
+                self.assertEqual(w.settings["players"][0]["big"], variant)
+                self.assertEqual(w.settings["players"][1], {})
+                with tempfile.TemporaryDirectory() as directory:
+                    path = Path(directory) / "profile.json"
+                    save_profile(path, w.settings, w.catalog)
+                    self.assertEqual(load_profile(path, w.catalog), w.settings)
+            row.value.setCurrentIndex(row.value.findData(2))
+            w.on_hotkey("big_mode", "tap")
+            self.assertEqual(w.settings["players"][0]["big"], 0)
+            self.assertFalse(row.value.isEnabled())
+            w.on_hotkey("big_mode", "tap")
+            self.assertEqual(w.settings["players"][0]["big"], 2)
+            w.on_hotkey("big_mode", "hold")
+            self.assertNotIn("big", w.settings["players"][0])
+            w.panels[0].display({"big": 0})
+            self.assertFalse(row.enabled.isChecked())
+            self.assertEqual(w.panels[0].read(), {"big": 0})
+            w.panels[0].display({"big": 1})
+            self.assertEqual(row.raw(), 1)
+            self.assertTrue(row.enabled.isChecked())
         finally:
             w.close()
 

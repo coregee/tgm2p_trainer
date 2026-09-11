@@ -124,7 +124,7 @@ def main():
             panel.action.emit("section", 0, 1)
             until(lambda: states[-1]["players"][0]["level"] == 500)
             assert states[-1]["players"][0]["section"] == 5, states[-1]
-            panel.toggles["big"].setChecked(True)
+            panel.rows["big"].enabled.setChecked(True)
             panel.toggles["items"].setChecked(True)
             until(
                 lambda: (
@@ -132,7 +132,7 @@ def main():
                     and states[-1]["players"][0]["game_mode"] & 0x200
                 )
             )
-            panel.toggles["big"].setChecked(False)
+            panel.rows["big"].enabled.setChecked(False)
             panel.toggles["items"].setChecked(False)
             until(
                 lambda: (

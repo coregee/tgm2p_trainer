@@ -251,6 +251,27 @@ level_spawn:
 
 .global level_lines
 level_lines:
+    ! Ordinary progression caps at four physical rows. Legacy BIG variants
+    ! must also award the remaining rows of a six/eight-row clear.
+    sts.l pr,@-r15
+    bsr active_big
+    nop
+    lds.l @r15+,pr
+    cmp/eq #1,r0
+    bt .Ldouble_level
+    cmp/eq #2,r0
+    bf .Lfreeze_lines
+.Ldouble_level:
+    mov #4,r1
+    cmp/gt r1,r10
+    bf .Lfreeze_lines
+    mov r10,r2
+    add #-4,r2
+    mov.w 4f,r0
+    mov.w @(r0,r14),r1
+    add r2,r1
+    mov.w r1,@(r0,r14)
+.Lfreeze_lines:
     config r14
     mov.w 3f,r2
     tst r2,r0
@@ -554,30 +575,118 @@ first_next:
     mov.l @r15+,r10
     jump 0x0600110c,r1
 
-! r14=player; return nonzero for the BIG movement grid. When the trainer owns
-! BIG, follow the CURRENT piece's geometry until its next handoff, even if the
-! queued setting changes. Otherwise retain the original game-mode predicate.
-big_grid:
+! r14=player; r0=-1 for game logic, otherwise the active piece's latched
+! variant: 0=off, 1=TGM2 (legacy value), 2=TGM1, 3=TAP. Preserve r1.
+active_big:
     mov.l r1,@-r15
-    config r14
-    mov.w 1f,r1
-    tst r1,r0
-    bt 2f
+    mov.l 1f,r1
+    mov.w @r1,r0
+    cmp/eq #1,r0
+    bf 2f
     mov.w 3f,r0
-    mov.w @(r0,r14),r0
-    mov.w 4f,r1
-    bra 5f
-    and r1,r0
-2:  mov.w 6f,r0
-    mov.w @(r0,r14),r0
-    and #64,r0
-5:  mov.l @r15+,r1
+    mov.b @(r0,r14),r0
+    extu.b r0,r0
+    cmp/eq #0,r0
+    bt 4f
+    cmp/eq #1,r0
+    bf 2f
+4:  shll8 r0
+    mov.l 5f,r1
+    add r0,r1
+    mov.l @r1,r0
+    bra 6f
+    nop
+2:  mov #-1,r0
+6:  mov.l @r15+,r1
     rts
     nop
-1:  .word 0x1000
-3:  .word 0x035e
-4:  .word 0x0200
-6:  .word 0x030c
+    .balign 4
+1:  .long 0x06060022
+5:  .long 0x060ef040
+3:  .word 0x030e
+
+! r14=player. Return nonzero for two-column movement.
+big_grid:
+    sts.l pr,@-r15
+    bsr active_big
+    nop
+    lds.l @r15+,pr
+    cmp/pz r0
+    bf .Lnatural_grid
+    cmp/eq #2,r0
+    bt .Lnormal_grid
+    mov.w .Lactive_piece,r0
+    mov.w @(r0,r14),r0
+    mov.l r1,@-r15
+    mov.w .Lbig_piece_bit,r1
+    and r1,r0
+    mov.l @r15+,r1
+    rts
+    nop
+.Lnormal_grid:
+    rts
+    mov #0,r0
+.Lnatural_grid:
+    mov.w .Lgame_mode,r0
+    mov.w @(r0,r14),r0
+    rts
+    and #64,r0
+.Lactive_piece: .word 0x035e
+.Lbig_piece_bit: .word 0x0200
+.Lgame_mode: .word 0x030c
+
+! The two stock BIG progression predicates use TAP normalization only.
+! Preserve raw r13 for stock score/combo handling and normalized r10 for
+! level/section bookkeeping. No persistent game-mode bits are forged.
+big_line_rule:
+    sts.l pr,@-r15
+    bsr active_big
+    nop
+    lds.l @r15+,pr
+    cmp/pz r0
+    bf .Lnatural_lines
+    cmp/eq #3,r0
+    bf .Lordinary_lines
+    rts
+    mov #64,r0
+.Lordinary_lines:
+    rts
+    mov #0,r0
+.Lnatural_lines:
+    mov.w .Lline_mode,r0
+    mov.w @(r0,r14),r0
+    rts
+    and #64,r0
+.Lline_mode: .word 0x030c
+
+.global big_line_count
+big_line_count:
+    sts.l pr,@-r15
+    bsr big_line_rule
+    nop
+    lds.l @r15+,pr
+    tst r0,r0
+    bt 1f
+    extu.b r13,r4
+    mov.l 2f,r3
+    mov r4,r10
+    jump 0x06006efc
+1:  jump 0x06006f0c
+    .balign 4
+2:  .long 0x0603076c
+
+.global big_line_progress
+big_line_progress:
+    sts.l pr,@-r15
+    bsr big_line_rule
+    nop
+    lds.l @r15+,pr
+    mov #1,r12
+    extu.b r13,r4
+    tst r0,r0
+    bt 1f
+    jump 0x06006f22
+1:  jump 0x06006f72
 
 .macro grid_branch name,big,normal,move_rotation=0
 .global \name
@@ -603,6 +712,26 @@ next_handoff:
     bsr queued_flags
     nop
     lds.l @r15+,pr
+    mov.l r1,@-r15
+    config r14
+    mov.w .Lbig_flag,r3
+    tst r3,r0
+    bt .Lrelease_big
+    mov.l @(52,r1),r3
+    bra .Llatch_big
+    nop
+.Lrelease_big:
+    mov #-1,r3
+.Llatch_big:
+    ! Only real gameplay owns a parameter record. Avoid writes in attract.
+    mov.l .Ldispatcher,r0
+    mov.w @r0,r0
+    cmp/eq #1,r0
+    bf .Lhandoff
+    add #64,r1
+    mov.l r3,@r1
+.Lhandoff:
+    mov.l @r15+,r1
     ! Promote the already overridden queued piece. Current piece changes only
     ! on this normal handoff, so its geometry cannot change mid-fall.
     mov.w 3f,r0
@@ -613,6 +742,9 @@ next_handoff:
     mov.b @(r0,r14),r2
     jump 0x06005ac0,r3
 3:  .word 0x0360
+.Lbig_flag: .word 0x1000
+    .balign 4
+.Ldispatcher: .long 0x06060022
 
 .global next_generated
 next_generated:

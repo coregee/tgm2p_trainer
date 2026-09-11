@@ -55,6 +55,14 @@ function Native:install()
     -- MAME runs Lua callbacks between CPU slices: the guest cannot observe
     -- partially published settings or a half-installed trampoline.
     self:write_bytes(self.manifest.base,self.manifest.payload)
+    for p=0,1 do
+        local runtime=self.manifest.parameters+p*256+64
+        -- Keep the falling piece's rule when loading a state from this build.
+        if self.space:read_u32(runtime+4)~=0x42494735 then
+            self.space:write_u32(runtime,0xffffffff)
+            self.space:write_u32(runtime+4,0x42494735)
+        end
+    end
     for _,patch in ipairs(self.manifest.patches) do self:write_bytes(patch.address,patch.bytes) end
     self.ready=true
     self.installs=self.installs+1
@@ -86,7 +94,7 @@ function Native:set_toggle(p, key, value)
     local addr=b+(key=='big' and 0x360 or 0x30c)
     local old=self.space:read_u16(addr)
     if key=='items' and self.original_items[p]==nil then self.original_items[p]=old&0x200 end
-    self.space:write_u16(addr,value==1 and (old|0x200) or (old&~0x200))
+    self.space:write_u16(addr,value~=0 and (old|0x200) or (old&~0x200))
     self.action_writes=self.action_writes+1
 end
 
