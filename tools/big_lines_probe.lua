@@ -61,7 +61,7 @@ _G.big_lines_probe=emu.add_machine_frame_notifier(function()
             if st.play_state==4 then clears[i]=true end
             if st.play_state==5 and clears[i] then
                 local count=n<=4 and n or 4
-                local gain=(variant==1 or variant==2) and count*2 or count
+                local gain=(variant==1 or variant==2) and math.min(count*2,4) or count
                 if n==6 then gain=0 end
                 assert(st.level==prior[i]+gain,string.format('P%d variant=%d case=%d expected level=%d got=%d',i,variant,n,prior[i]+gain,st.level))
                 if n==5 then assert(st.section==1,'section crossing bookkeeping') end

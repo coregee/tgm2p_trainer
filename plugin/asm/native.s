@@ -251,27 +251,7 @@ level_spawn:
 
 .global level_lines
 level_lines:
-    ! Ordinary progression caps at four physical rows. Legacy BIG variants
-    ! must also award the remaining rows of a six/eight-row clear.
-    sts.l pr,@-r15
-    bsr active_big
-    nop
-    lds.l @r15+,pr
-    cmp/eq #1,r0
-    bt .Ldouble_level
-    cmp/eq #2,r0
-    bf .Lfreeze_lines
-.Ldouble_level:
-    mov #4,r1
-    cmp/gt r1,r10
-    bf .Lfreeze_lines
-    mov r10,r2
-    add #-4,r2
-    mov.w 4f,r0
-    mov.w @(r0,r14),r1
-    add r2,r1
-    mov.w r1,@(r0,r14)
-.Lfreeze_lines:
+    ! Retain the stock four-level cap, including TGM1/TGM2 BIG clears.
     config r14
     mov.w 3f,r2
     tst r2,r0

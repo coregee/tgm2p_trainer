@@ -32,7 +32,7 @@ load invalidate readiness and republish the app's desired state. An unsupported
 ROM or conflicting patch produces a visible error rather than a misleading
 connected status. MAME runs with the SH-2 dynamic recompiler enabled.
 
-Runtime code occupies `0x060E0000` onward (currently 2,656 bytes); settings start
+Runtime code occupies `0x060E0000` onward (currently 2,620 bytes); settings start
 at `0x060EF000`. These are trainer-reserved locations in work RAM, not ROM edits.
 Other trainers using this area must not be combined with this plugin. Original
 program code is copied from ROM offset `0x780` to `0x06000000` during boot.
@@ -89,7 +89,7 @@ where the original continuation still needs `r0`.
 | `060035AC` | DAS consumer: player is `r14`, selected threshold is `r4`. Only the threshold changes; input charging and repeats remain original. |
 | `06009254` | Music director consumes/clears its original request, then optionally replaces the pending scene before original transition logic resumes. |
 | `06006B88` | Piece-entry progression: restores the freeze anchor and skips the increment/cap; disabled path replays stock progression. |
-| `06006FE0` | Line progression: TGM1/TGM2 add rows beyond the ordinary four-level cap, then freeze overrides the result before original section/grade calls and boundary checks. |
+| `06006FE0` | Line progression: retains the stock four-level cap (including TGM1/TGM2 BIG), then freeze overrides the result before original section/grade calls and boundary checks. |
 | `06006EEE`, `06006F14` | BIG count normalization and progression predicates: TAP uses the stock BIG path (two physical rows per big line); TGM1/TGM2 use physical row counts. Unowned and attract paths retain the mode predicate. |
 | `06007016` | Torikan decision: enabled path skips to `06007038`; disabled path replays the time/qualification test. |
 | `06016136`, `060164FA` | Alternate drawing predicate and main gameplay renderer (both single-player and Doubles). Visible clears `0x5000` in the temporary attribute register. Invisible hides ordinary mature cells, preserving `0x80` lock flash and `0x1000` timed fade. Fading follows stored cell timers. States 7, 9, 10, 11 and 13 retain original reveal behavior. |
@@ -188,7 +188,7 @@ Opening-preview screenshots and logs are saved under `.venv/big-evidence`.
 No stock BIG game-mode bit is set.
 
 `tools/verify_big_lines.py` seeds full rows then drops and locks real pieces.
-For both players, single through tetris gains are 2/4/6/8 in TGM1/TGM2 and
+For both players, single through tetris gains are 2/4/4/4 in TGM1/TGM2 and
 1/2/3/4 in TAP/off (off uses ordinary-sized rows). It also checks section
 crossings, level freeze, and variant changes before the active piece locks.
 The fixture checks native clear processing on seeded fields, not a complete
